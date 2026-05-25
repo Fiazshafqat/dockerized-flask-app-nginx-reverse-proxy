@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+
+  flask-app:
+    build: .
+    container_name: flask-app
+    ports:
+      - "8000:80"
+    networks:
+      - flask-net
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  nginx:
+    build:
+      context: ./ngnix
+    container_name: nginx
+    ports:
+      - "80:80"
+    restart: always
+    depends_on:
+      - flask-app
+    networks:
+      - flask-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  flask-net:
