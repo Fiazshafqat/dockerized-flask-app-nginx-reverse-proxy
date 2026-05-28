@@ -77,10 +77,5 @@ pipeline {
         failure {
             echo "❌ Pipeline FAILED: Check logs for errors"
         }
-
-        always {
-            echo "📌 Cleaning workspace (optional step)"
-            cleanWs()
-        }
     }
 }
