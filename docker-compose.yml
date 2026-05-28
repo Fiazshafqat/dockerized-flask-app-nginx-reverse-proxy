@@ -4,6 +4,7 @@ services:
 
   flask-app:
     build: .
+    image: flask_app:latest
     container_name: flask-app
     ports:
       - "8000:80"
