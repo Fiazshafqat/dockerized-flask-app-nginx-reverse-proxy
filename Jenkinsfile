@@ -19,6 +19,51 @@ pipeline {
             }
         }
 
+        stage('Trivy File System Scan') {
+            steps {
+                sh '''
+                trivy fs --format table -o trivy-fs-report.html .
+                '''
+            }
+        }
+
+        
+        
+        stage('SonarQube Code Analysis') {
+            steps {
+            withSonarQubeEnv('Sonar') {
+            sh '''
+            /opt/sonar-scanner/bin/sonar-scanner \
+            -Dsonar.projectKey=flask-app \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.login=$SONAR_AUTH_TOKEN
+            '''
+                }
+            }
+        }
+
+
+        stage('SonarQube Quality Gate') {
+            steps {
+                timeout(time: 2, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+
+        stage('OWASP Dependency Check') {
+            steps {
+            dependencyCheck additionalArguments: '''
+            --scan ./
+            --nvdApiKey 086df244-5a64-4c8f-926f-0d2662b95a94
+            ''', odcInstallation: 'OWASP'
+            dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+
+
         stage('Build Docker Images') {
             steps {
                 echo "Building Docker image"
